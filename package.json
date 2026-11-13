@@ -1,6 +1,6 @@
 {
   "name": "@local/sidebar-groups",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "private": true,
   "type": "module",
   "description": "A locally classified plugin wall with draggable groups and compact footer tools.",
@@ -50,5 +50,8 @@
     "sidebar",
     "plugin-wall",
     "automatic-grouping"
-  ]
+  ],
+  "engines": {
+    "dsh": "0.2.2-rc.1 || 0.2.2-rc.2"
+  }
 }

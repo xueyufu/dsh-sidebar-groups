@@ -33,11 +33,17 @@ const cordis = await import(dataModule(readArchive('dsh/node_modules/@deepseek-a
   .replace('"@deepseek-ai/cosmokit"', JSON.stringify(cosmokitURL))));
 const shell = readArchive(findAsset(header));
 // The installed shell embeds SlotCore. Fail explicitly if its build format changes.
-const start = shell.indexOf('const i1=Object.freeze([]);var SI=class');
-const end = shell.indexOf(';const jI=', start);
+const signatures = [
+  ['const du=Object.freeze([]);function PN', ';const RN=', 'AN'], // 0.2.2-rc.2
+  ['const b1=Object.freeze([]);var OI=class', ';const MI=', 'OI'], // 0.2.2-rc.1
+  ['const i1=Object.freeze([]);var SI=class', ';const jI=', 'SI'], // 0.2.1-rc.5
+];
+const [prefixMarker, suffixMarker, coreName] = signatures.find(([marker]) => shell.includes(marker)) ?? [];
+const start = prefixMarker ? shell.indexOf(prefixMarker) : -1;
+const end = suffixMarker ? shell.indexOf(suffixMarker, start) : -1;
 assert.ok(start >= 0 && end > start, 'Installed SlotCore extraction needs updating for this host version');
 const core = {queueMicrotask};
-vm.runInNewContext(`${shell.slice(start, end)};globalThis.SlotCore=SI;`, core);
+vm.runInNewContext(`${shell.slice(start, end)};globalThis.SlotCore=${coreName};`, core);
 const slotModule = {
   SlotCore: core.SlotCore,
   SlotOwnershipError: class extends Error {},
@@ -80,11 +86,12 @@ const yamlContext = {exports: {}};
 yamlContext.module = {exports: yamlContext.exports};
 vm.runInNewContext(readArchive('node_modules/js-yaml/dist/js-yaml.js'), yamlContext);
 const include = readArchive('dsh/node_modules/@deepseek-ai/cordis-plugin-include/lib/index.js');
-const patchStart = include.indexOf('function applyEntryPatches(');
+const patchName = include.includes('function applyEntryPatches(') ? 'applyEntryPatches' : 'applyPatches';
+const patchStart = include.indexOf('function ' + patchName + '(');
 const patchEnd = include.indexOf('\n}', patchStart) + 2;
 assert.ok(patchStart >= 0 && patchEnd > patchStart, 'Cannot extract installed patch composition');
 const patchContext = {structuredClone};
-vm.runInNewContext(`${include.slice(patchStart, patchEnd)};globalThis.compose=applyEntryPatches`, patchContext);
+vm.runInNewContext(`${include.slice(patchStart, patchEnd)};globalThis.compose=${patchName}`, patchContext);
 const nativeRow = {id: 'ui-sidebar', name: '@deepseek-ai/dsh-client-ui-sidebar'};
 const warnings = [];
 const composed = patchContext.compose([nativeRow], yamlContext.exports.load(patch), (...args) => warnings.push(args));
