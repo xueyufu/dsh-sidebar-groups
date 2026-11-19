@@ -9,7 +9,7 @@ const home=join(root,'home'),dshHome=join(root,'dsh'),profile=join(dshHome,'prof
 mkdirSync(home,{recursive:true});mkdirSync(profile,{recursive:true});
 writeFileSync(join(profile,'package.json'),JSON.stringify({name:'isolated-sidebar-install',private:true,dependencies:{},dsh:{profile:{bundles:[]}}}));
 writeFileSync(join(profile,'cordis.patch.yml'),'[]\n');
-const archive=resolve(process.argv[2]??'releases/local-sidebar-groups-2.4.2.tgz');
+const archive=resolve(process.argv[2]??'releases/local-sidebar-groups-2.4.3.tgz');
 const cli=process.env.DSH_CLI??'/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh';
 const result=spawnSync(cli,['plugin','--profile','desktop','add',archive,'--offline','--ignore-scripts'],{cwd:root,env:{...process.env,HOME:home,DSH_HOME:dshHome,XDG_CACHE_HOME:join(root,'cache'),XDG_DATA_HOME:join(root,'data'),npm_config_cache:join(root,'npm-cache')},encoding:'utf8',timeout:60000});
 assert.equal(result.status,0,String(result.error??'')+result.stdout+result.stderr);
@@ -17,7 +17,7 @@ const pkg=JSON.parse(readFileSync(join(profile,'package.json')));
 assert.ok(pkg.dependencies['@local/sidebar-groups']);
 assert.ok(pkg.dsh.profile.bundles.includes('@local/sidebar-groups'),'Official installer must register bundle');
 const installed=realpathSync(join(profile,'node_modules/@local/sidebar-groups'));
-assert.equal(JSON.parse(readFileSync(join(installed,'package.json'))).version,'2.4.2');
+assert.equal(JSON.parse(readFileSync(join(installed,'package.json'))).version,'2.4.3');
 assert.ok(existsSync(join(installed,'client.js')));
 assert.ok(!existsSync(join(installed,'install-local.py')));
 assert.ok(!existsSync(join(installed,'last-deployment.json')));
